@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha256-CTSx/A06dm1B063156EVh15m6Y67pAjZZaQc89LLSrU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"gmrccc.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.18.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="首先我们要知道，将所有权重初始化为0是没有意义的  如图所示，假设W为一个2×2的零矩阵，这意味隐藏层的两个神经元参数完全一样，我们将同样的样本输入进去，经过梯度下降后，更新的参数也会完全一样(很符合直觉，所有的样本和权重都一样，更新后当然也一样，可以用归纳法证明)。 这意味着无论你训练多少次，隐藏层的两个神经元训练出来的函数都相同，效果等于只用了一个神经元。 所以我们需要随机初始化权重，保证多个">
+<meta property="og:type" content="article">
+<meta property="og:title" content="3.11 随机初始化">
+<meta property="og:url" content="http://gmrccc.com/2023/10/26/%E8%AF%BE%E7%A8%8B1-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E4%B8%8E%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/3.11%20%E9%9A%8F%E6%9C%BA%E5%88%9D%E5%A7%8B%E5%8C%96/index.html">
+<meta property="og:site_name" content="GMR&#39;s Blog">
+<meta property="og:description" content="首先我们要知道，将所有权重初始化为0是没有意义的  如图所示，假设W为一个2×2的零矩阵，这意味隐藏层的两个神经元参数完全一样，我们将同样的样本输入进去，经过梯度下降后，更新的参数也会完全一样(很符合直觉，所有的样本和权重都一样，更新后当然也一样，可以用归纳法证明)。 这意味着无论你训练多少次，隐藏层的两个神经元训练出来的函数都相同，效果等于只用了一个神经元。 所以我们需要随机初始化权重，保证多个">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://gmrccc.com/img/Pastedimage20230824145252.png">
+<meta property="og:image" content="http://gmrccc.com/img/Pastedimage20230824145754.png">
+<meta property="article:published_time" content="2023-10-25T16:00:00.000Z">
+<meta property="article:modified_time" content="2023-10-26T06:08:36.828Z">
+<meta property="article:author" content="GMRCCC">
+<meta property="article:tag" content="深度学习">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://gmrccc.com/img/Pastedimage20230824145252.png">
+
+
+<link rel="canonical" href="http://gmrccc.com/2023/10/26/%E8%AF%BE%E7%A8%8B1-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E4%B8%8E%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/3.11%20%E9%9A%8F%E6%9C%BA%E5%88%9D%E5%A7%8B%E5%8C%96/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://gmrccc.com/2023/10/26/%E8%AF%BE%E7%A8%8B1-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E4%B8%8E%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/3.11%20%E9%9A%8F%E6%9C%BA%E5%88%9D%E5%A7%8B%E5%8C%96/","path":"2023/10/26/课程1-神经网络与深度学习/3.11 随机初始化/","title":"3.11 随机初始化"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>3.11 随机初始化 | GMR's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">GMR's Blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-overview-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="GMRCCC"
+      src="/uploads/1.jpg">
+  <p class="site-author-name" itemprop="name">GMRCCC</p>
+  <div class="site-description" itemprop="description">GM兔的博客</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">158</span>
+          <span class="site-state-item-name">文章</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/GMRCCC" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;GMRCCC" rel="noopener me" target="_blank">GitHub</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://gmrccc.com/2023/10/26/%E8%AF%BE%E7%A8%8B1-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E4%B8%8E%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/3.11%20%E9%9A%8F%E6%9C%BA%E5%88%9D%E5%A7%8B%E5%8C%96/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/1.jpg">
+      <meta itemprop="name" content="GMRCCC">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GMR's Blog">
+      <meta itemprop="description" content="GM兔的博客">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="3.11 随机初始化 | GMR's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          3.11 随机初始化
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-10-26 00:00:00 / 修改时间：14:08:36" itemprop="dateCreated datePublished" datetime="2023-10-26T00:00:00+08:00">2023-10-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%90%B4%E6%81%A9%E8%BE%BE%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A01-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E4%B8%8E%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">吴恩达深度学习1-神经网络与深度学习</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>首先我们要知道，将所有权重初始化为0是没有意义的</p>
+<p><img src="/img/Pastedimage20230824145252.png" alt="图片"></p>
+<p>如图所示，假设W为一个2×2的零矩阵，这意味隐藏层的两个神经元参数完全一样，我们将同样的样本输入进去，经过梯度下降后，更新的参数也会完全一样(很符合直觉，所有的样本和权重都一样，更新后当然也一样，可以用归纳法证明)。</p>
+<p>这意味着无论你训练多少次，隐藏层的两个神经元训练出来的函数都相同，效果等于只用了一个神经元。</p>
+<p>所以我们需要随机初始化权重，保证多个神经元是有意义的 </p>
+<p><img src="/img/Pastedimage20230824145754.png" alt="图片"></p>
+<p>b可以设置为0(w要不同，因为梯度求导时看w而不看b)，W用np的random函数进行随机初始化，再×0.01来缩小，这样算出来的z也较小，这样做是因为我们用的激活函数(sigmoid、tanh)一般在0附近的斜率较大，让z值落在0附近可以保证梯度下降的速度。</p>
+<p>当神经网络的深度很大时，我们也可以使用0.01以外的常数，这将在以后进行讨论。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="reward-container">
+  <div>请我一杯咖啡吧！</div>
+  <button>
+    赞赏
+  </button>
+  <div class="post-reward">
+      <div>
+        <img src="/images/weixin.jpg" alt="GMRCCC 微信">
+        <span>微信</span>
+      </div>
+      <div>
+        <img src="/images/zhifubao.jpg" alt="GMRCCC 支付宝">
+        <span>支付宝</span>
+      </div>
+
+  </div>
+</div>
+
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>GMRCCC
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="http://gmrccc.com/2023/10/26/%E8%AF%BE%E7%A8%8B1-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E4%B8%8E%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/3.11%20%E9%9A%8F%E6%9C%BA%E5%88%9D%E5%A7%8B%E5%8C%96/" title="3.11 随机初始化">http://gmrccc.com/2023/10/26/课程1-神经网络与深度学习/3.11 随机初始化/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" rel="tag"># 深度学习</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/10/26/%E8%AF%BE%E7%A8%8B1-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E4%B8%8E%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/3.10%20%E7%9B%B4%E8%A7%82%E7%90%86%E8%A7%A3%E5%8F%8D%E5%90%91%E4%BC%A0%E6%92%AD/" rel="prev" title="3.10 直观理解反向传播">
+                  <i class="fa fa-angle-left"></i> 3.10 直观理解反向传播
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/10/26/%E8%AF%BE%E7%A8%8B1-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E4%B8%8E%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/2.9%20%E5%90%91%E9%87%8F%E5%8C%96/" rel="next" title="2.9 向量化">
+                  2.9 向量化 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2023</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">GMRCCC</span>
+  </div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha256-CTSx/A06dm1B063156EVh15m6Y67pAjZZaQc89LLSrU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"gmrccc.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.18.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="Compose类Compose中的参数需要的是一个列表，数据类型需要是transforms类型。 1Compose([transforms参数1, transforms参数2, ...])  比如我们可以先裁剪再调用ToTensor方法 123456Example:      &gt;&gt;&gt; transforms.Compose([        &gt;&gt;&gt;     tra">
+<meta property="og:type" content="article">
+<meta property="og:title" content="07 Transforms中常用的工具">
+<meta property="og:url" content="http://gmrccc.com/2023/10/30/PyTorch%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8%E6%95%99%E7%A8%8B/07%20Transforms%E4%B8%AD%E5%B8%B8%E7%94%A8%E7%9A%84%E5%B7%A5%E5%85%B7/index.html">
+<meta property="og:site_name" content="GMR&#39;s Blog">
+<meta property="og:description" content="Compose类Compose中的参数需要的是一个列表，数据类型需要是transforms类型。 1Compose([transforms参数1, transforms参数2, ...])  比如我们可以先裁剪再调用ToTensor方法 123456Example:      &gt;&gt;&gt; transforms.Compose([        &gt;&gt;&gt;     tra">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://gmrccc.com/img/Pastedimage20230724152416.png">
+<meta property="og:image" content="http://gmrccc.com/img/Pastedimage20230724152520.png">
+<meta property="og:image" content="http://gmrccc.com/img/Pastedimage20230724163117.png">
+<meta property="og:image" content="http://gmrccc.com/img/Pastedimage20230724163133.png">
+<meta property="article:published_time" content="2023-10-29T16:00:00.000Z">
+<meta property="article:modified_time" content="2023-11-01T02:15:46.335Z">
+<meta property="article:author" content="GMRCCC">
+<meta property="article:tag" content="深度学习">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://gmrccc.com/img/Pastedimage20230724152416.png">
+
+
+<link rel="canonical" href="http://gmrccc.com/2023/10/30/PyTorch%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8%E6%95%99%E7%A8%8B/07%20Transforms%E4%B8%AD%E5%B8%B8%E7%94%A8%E7%9A%84%E5%B7%A5%E5%85%B7/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://gmrccc.com/2023/10/30/PyTorch%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8%E6%95%99%E7%A8%8B/07%20Transforms%E4%B8%AD%E5%B8%B8%E7%94%A8%E7%9A%84%E5%B7%A5%E5%85%B7/","path":"2023/10/30/PyTorch快速入门教程/07 Transforms中常用的工具/","title":"07 Transforms中常用的工具"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>07 Transforms中常用的工具 | GMR's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">GMR's Blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Compose%E7%B1%BB"><span class="nav-number">1.</span> <span class="nav-text">Compose类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ToTensor%E7%B1%BB"><span class="nav-number">2.</span> <span class="nav-text">ToTensor类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ToPILImage%E7%B1%BB"><span class="nav-number">3.</span> <span class="nav-text">ToPILImage类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Normalize%E7%B1%BB"><span class="nav-number">4.</span> <span class="nav-text">Normalize类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Resize%E7%B1%BB"><span class="nav-number">5.</span> <span class="nav-text">Resize类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RandomCrop%E7%B1%BB"><span class="nav-number">6.</span> <span class="nav-text">RandomCrop类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">7.</span> <span class="nav-text">总结</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="GMRCCC"
+      src="/uploads/1.jpg">
+  <p class="site-author-name" itemprop="name">GMRCCC</p>
+  <div class="site-description" itemprop="description">GM兔的博客</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">158</span>
+          <span class="site-state-item-name">文章</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/GMRCCC" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;GMRCCC" rel="noopener me" target="_blank">GitHub</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://gmrccc.com/2023/10/30/PyTorch%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8%E6%95%99%E7%A8%8B/07%20Transforms%E4%B8%AD%E5%B8%B8%E7%94%A8%E7%9A%84%E5%B7%A5%E5%85%B7/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/1.jpg">
+      <meta itemprop="name" content="GMRCCC">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GMR's Blog">
+      <meta itemprop="description" content="GM兔的博客">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="07 Transforms中常用的工具 | GMR's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          07 Transforms中常用的工具
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-10-30 00:00:00" itemprop="dateCreated datePublished" datetime="2023-10-30T00:00:00+08:00">2023-10-30</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-11-01 10:15:46" itemprop="dateModified" datetime="2023-11-01T10:15:46+08:00">2023-11-01</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/PyTorch%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/" itemprop="url" rel="index"><span itemprop="name">PyTorch快速入门</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h3 id="Compose类"><a href="#Compose类" class="headerlink" title="Compose类"></a>Compose类</h3><p>Compose中的参数需要的是一个列表，数据类型需要是transforms类型。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Compose([transforms参数<span class="number">1</span>, transforms参数<span class="number">2</span>, ...])</span><br></pre></td></tr></table></figure>
+
+<p>比如我们可以先裁剪再调用ToTensor方法</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Example:  </span><br><span class="line">    &gt;&gt;&gt; transforms.Compose([    </span><br><span class="line">    &gt;&gt;&gt;     transforms.CenterCrop(<span class="number">10</span>),    </span><br><span class="line">    &gt;&gt;&gt;     transforms.PILToTensor(),    </span><br><span class="line">    &gt;&gt;&gt;     transforms.ConvertImageDtype(torch.<span class="built_in">float</span>),    </span><br><span class="line">    &gt;&gt;&gt;  ])</span><br></pre></td></tr></table></figure>
+
+<p>实例化对象后，compose对象需要输入Image。</p>
+<h3 id="ToTensor类"><a href="#ToTensor类" class="headerlink" title="ToTensor类"></a>ToTensor类</h3><p>将np或者PIL数据类型的图片转换为tensor数据类型。</p>
+<h3 id="ToPILImage类"><a href="#ToPILImage类" class="headerlink" title="ToPILImage类"></a>ToPILImage类</h3><p>将tensor或者np数据类型的图片转换为PIL数据类型</p>
+<h3 id="Normalize类"><a href="#Normalize类" class="headerlink" title="Normalize类"></a>Normalize类</h3><p>进行归一化</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Normalize a tensor image <span class="keyword">with</span> mean <span class="keyword">and</span> standard deviation //用平均值和标准差来归一化一张图像</span><br><span class="line"></span><br><span class="line">output[channel] = (<span class="built_in">input</span>[channel] - mean[channel]) / std[channel] //计算公式</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">writer = SummaryWriter(<span class="string">&quot;logs&quot;</span>)  </span><br><span class="line">img = Image.<span class="built_in">open</span>(<span class="string">&quot;images/6240338_93729615ec.jpg&quot;</span>)  </span><br><span class="line">  </span><br><span class="line">trans_totensor = transforms.ToTensor()  </span><br><span class="line">img_tensor = trans_totensor(img)  </span><br><span class="line">  </span><br><span class="line">trans_norm = transforms.Normalize([<span class="number">0.5</span>, <span class="number">0.5</span>, <span class="number">0.5</span>], [<span class="number">0.5</span>, <span class="number">0.5</span>, <span class="number">0.5</span>])  </span><br><span class="line">img_norm = trans_norm(img_tensor)  </span><br><span class="line">writer.add_image(<span class="string">&quot;Normalize&quot;</span>, img_norm, <span class="number">1</span>)  </span><br><span class="line">writer.close()</span><br></pre></td></tr></table></figure>
+
+<p>由于我们传入的是三通道图片，因此均值和方差均需传入长度为3的数组，我们设置的值均为0.5，它的作用是将[0,1]之间的数据转换为[-1,1]之间的数据。</p>
+<p><img src="/img/Pastedimage20230724152416.png" alt="图片"></p>
+<p>输入前和输入后的图片</p>
+<p><img src="/img/Pastedimage20230724152520.png" alt="图片"></p>
+<h3 id="Resize类"><a href="#Resize类" class="headerlink" title="Resize类"></a>Resize类</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Resize the <span class="built_in">input</span> image to the given size. </span><br><span class="line"></span><br><span class="line">size (sequence <span class="keyword">or</span> <span class="built_in">int</span>): Desired output size. If size <span class="keyword">is</span> a sequence like  </span><br><span class="line">    (h, w), output size will be matched to this. If size <span class="keyword">is</span> an <span class="built_in">int</span>,    smaller edge of the image will be matched to this number.    </span><br><span class="line">    i.e, <span class="keyword">if</span> height &gt; width, then image will be rescaled to    </span><br><span class="line">    (size * height / width, size).</span><br><span class="line"></span><br><span class="line">//如果大小是这样的序列（h，w），输出大小将与此匹配。如果大小是<span class="built_in">int</span>，图像的较小边缘将与该数字相匹配。</span><br><span class="line">即，如果高度 &gt; 宽度，则图像将被重新缩放为</span><br><span class="line">（尺寸 * 高度 / 宽度，尺寸）。</span><br></pre></td></tr></table></figure>
+
+<p>我们可以先将PIL图片用resize方法进行放缩，再转为tensor类型的图片，完成一系列流水线操作</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Resize</span></span><br><span class="line">trans_resize = transforms.Resize((<span class="number">512</span>, <span class="number">512</span>))  </span><br><span class="line"><span class="comment">#img PIL -&gt; resize -&gt; img_resize PIL</span></span><br><span class="line">img_resize = trans_resize(img)  </span><br><span class="line"><span class="comment">#img_resize PIL -&gt; totensor -&gt;img_resize tensor</span></span><br><span class="line">img_resize = trans_totensor(img_resize)  </span><br><span class="line">writer.add_image(<span class="string">&quot;Resize&quot;</span>, img_resize, <span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+
+<p> 或者可以用compose方法，进行放缩变换</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Compose - resize - 2</span></span><br><span class="line">trans_resize_2 = transforms.Resize(<span class="number">512</span>)</span><br><span class="line">trans_compose = transforms.Compose([trans_resize_2, trans_totensor])</span><br><span class="line">img_resize_2 = trans_compose(img)</span><br><span class="line">writer.add_image(<span class="string">&quot;Resize&quot;</span>, img_resize_2, <span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+
+<p>注意：老版的resize类不支持tensor数据类型，但新版的resize已经支持了，不需要进行这么麻烦的操作。</p>
+<h3 id="RandomCrop类"><a href="#RandomCrop类" class="headerlink" title="RandomCrop类"></a>RandomCrop类</h3><p>随机裁剪，对这个类我们只简单看一下size的作用</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">size (sequence <span class="keyword">or</span> <span class="built_in">int</span>): Desired output size of the crop. </span><br><span class="line">If size <span class="keyword">is</span> an <span class="built_in">int</span> instead of sequence like (h, w), a square crop (size, size) <span class="keyword">is</span> made. </span><br><span class="line">If provided a sequence of length <span class="number">1</span>, it will be interpreted <span class="keyword">as</span> (size[<span class="number">0</span>], size[<span class="number">0</span>]).</span><br><span class="line">//size（sequence或<span class="built_in">int</span>）：作物所需的输出大小。</span><br><span class="line">如果size是<span class="built_in">int</span>而不是像（h，w）那样的序列，则会生成方形裁剪（size，size）。</span><br><span class="line">如果提供长度为<span class="number">1</span>的序列，它将被解释为（size[<span class="number">0</span>]，size[<span class="number">0</span>]）。</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#RandomCrop</span></span><br><span class="line">trans_random = transforms.RandomCrop(<span class="number">128</span>)  </span><br><span class="line">trans_compose_2 = transforms.Compose([trans_random, trans_totensor])  </span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">10</span>) :  </span><br><span class="line">    img_crop = trans_compose_2(img)  </span><br><span class="line">    writer.add_image(<span class="string">&quot;RandomCrop&quot;</span>, img_crop, i)</span><br></pre></td></tr></table></figure>
+
+<p>RandomCrop会对给定的裁剪大小对图片进行随机裁剪，结果如下</p>
+<p><img src="/img/Pastedimage20230724163117.png" alt="图片"><img src="/img/Pastedimage20230724163133.png" alt="图片"></p>
+<p>这里只列出其中两张图片。</p>
+<p>注意：给定的裁剪大小必须要小于图片的大小，不然会报错。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ol>
+<li>关注输入和输出类型，多看官方文档，比网上、CSDN搜索要准确的多</li>
+<li>关注方法需要什么参数，比如初始化时需要的参数。</li>
+<li>不知道返回值类型时，用print或者print(type())或debug来查看。</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="reward-container">
+  <div>请我一杯咖啡吧！</div>
+  <button>
+    赞赏
+  </button>
+  <div class="post-reward">
+      <div>
+        <img src="/images/weixin.jpg" alt="GMRCCC 微信">
+        <span>微信</span>
+      </div>
+      <div>
+        <img src="/images/zhifubao.jpg" alt="GMRCCC 支付宝">
+        <span>支付宝</span>
+      </div>
+
+  </div>
+</div>
+
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>GMRCCC
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="http://gmrccc.com/2023/10/30/PyTorch%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8%E6%95%99%E7%A8%8B/07%20Transforms%E4%B8%AD%E5%B8%B8%E7%94%A8%E7%9A%84%E5%B7%A5%E5%85%B7/" title="07 Transforms中常用的工具">http://gmrccc.com/2023/10/30/PyTorch快速入门教程/07 Transforms中常用的工具/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" rel="tag"># 深度学习</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/10/30/PyTorch%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8%E6%95%99%E7%A8%8B/08%20torchvision%E4%B8%AD%E7%9A%84%E6%95%B0%E6%8D%AE%E9%9B%86%E4%BD%BF%E7%94%A8/" rel="prev" title="08 torchvision中的数据集使用">
+                  <i class="fa fa-angle-left"></i> 08 torchvision中的数据集使用
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/10/30/PyTorch%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8%E6%95%99%E7%A8%8B/06%20Transforms%E7%9A%84%E4%BD%BF%E7%94%A8/" rel="next" title="06 Transforms的使用">
+                  06 Transforms的使用 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2023</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">GMRCCC</span>
+  </div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

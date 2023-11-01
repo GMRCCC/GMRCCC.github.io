@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha256-CTSx/A06dm1B063156EVh15m6Y67pAjZZaQc89LLSrU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"gmrccc.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.18.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="我们用的激活函数一直是sigmoid函数  但实际上有更好的函数，即双曲正切函数  tanh函数介于-1和1之间，在数学上是δ函数平移后的结果，让函数关于原点中心对称。 双曲正切函数的激活效果在大部分情况下比sigmo函数要好，因为其平均值更接近0。有时候为了处理数据我们会增减让其平均值为0，而对tanh函数，本身就有类似数据中心化的效果，这会让下一层的学习更加方便。 有一个例外是二分类的输出，我">
+<meta property="og:type" content="article">
+<meta property="og:title" content="3.6 激活函数">
+<meta property="og:url" content="http://gmrccc.com/2023/10/26/%E8%AF%BE%E7%A8%8B1-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E4%B8%8E%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/3.6%20%E6%BF%80%E6%B4%BB%E5%87%BD%E6%95%B0/index.html">
+<meta property="og:site_name" content="GMR&#39;s Blog">
+<meta property="og:description" content="我们用的激活函数一直是sigmoid函数  但实际上有更好的函数，即双曲正切函数  tanh函数介于-1和1之间，在数学上是δ函数平移后的结果，让函数关于原点中心对称。 双曲正切函数的激活效果在大部分情况下比sigmo函数要好，因为其平均值更接近0。有时候为了处理数据我们会增减让其平均值为0，而对tanh函数，本身就有类似数据中心化的效果，这会让下一层的学习更加方便。 有一个例外是二分类的输出，我">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://gmrccc.com/img/Pastedimage20230823145131.png">
+<meta property="og:image" content="http://gmrccc.com/img/Pastedimage20230823145200.png">
+<meta property="og:image" content="http://gmrccc.com/img/Pastedimage20230823150636.png">
+<meta property="og:image" content="http://gmrccc.com/img/Pastedimage20230823151920.png">
+<meta property="og:image" content="http://gmrccc.com/img/Pastedimage20230823152430.png">
+<meta property="og:image" content="http://gmrccc.com/img/Pastedimage20230823152519.png">
+<meta property="og:image" content="http://gmrccc.com/img/Pastedimage20230823152554.png">
+<meta property="og:image" content="http://gmrccc.com/img/Pastedimage20230823152723.png">
+<meta property="article:published_time" content="2023-10-25T16:00:00.000Z">
+<meta property="article:modified_time" content="2023-10-26T06:08:07.471Z">
+<meta property="article:author" content="GMRCCC">
+<meta property="article:tag" content="深度学习">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://gmrccc.com/img/Pastedimage20230823145131.png">
+
+
+<link rel="canonical" href="http://gmrccc.com/2023/10/26/%E8%AF%BE%E7%A8%8B1-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E4%B8%8E%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/3.6%20%E6%BF%80%E6%B4%BB%E5%87%BD%E6%95%B0/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://gmrccc.com/2023/10/26/%E8%AF%BE%E7%A8%8B1-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E4%B8%8E%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/3.6%20%E6%BF%80%E6%B4%BB%E5%87%BD%E6%95%B0/","path":"2023/10/26/课程1-神经网络与深度学习/3.6 激活函数/","title":"3.6 激活函数"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>3.6 激活函数 | GMR's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">GMR's Blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.</span> <span class="nav-text">总结</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="GMRCCC"
+      src="/uploads/1.jpg">
+  <p class="site-author-name" itemprop="name">GMRCCC</p>
+  <div class="site-description" itemprop="description">GM兔的博客</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">158</span>
+          <span class="site-state-item-name">文章</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/GMRCCC" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;GMRCCC" rel="noopener me" target="_blank">GitHub</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://gmrccc.com/2023/10/26/%E8%AF%BE%E7%A8%8B1-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E4%B8%8E%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/3.6%20%E6%BF%80%E6%B4%BB%E5%87%BD%E6%95%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/1.jpg">
+      <meta itemprop="name" content="GMRCCC">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GMR's Blog">
+      <meta itemprop="description" content="GM兔的博客">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="3.6 激活函数 | GMR's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          3.6 激活函数
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-10-26 00:00:00 / 修改时间：14:08:07" itemprop="dateCreated datePublished" datetime="2023-10-26T00:00:00+08:00">2023-10-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%90%B4%E6%81%A9%E8%BE%BE%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A01-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E4%B8%8E%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">吴恩达深度学习1-神经网络与深度学习</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>我们用的激活函数一直是sigmoid函数</p>
+<p><img src="/img/Pastedimage20230823145131.png" alt="图片"></p>
+<p>但实际上有更好的函数，即双曲正切函数</p>
+<p><img src="/img/Pastedimage20230823145200.png" alt="图片"></p>
+<p>tanh函数介于-1和1之间，在数学上是δ函数平移后的结果，让函数关于原点中心对称。</p>
+<p>双曲正切函数的激活效果在大部分情况下比sigmo函数要好，因为其平均值更接近0。有时候为了处理数据我们会增减让其平均值为0，而对tanh函数，本身就有类似数据中心化的效果，这会让下一层的学习更加方便。</p>
+<p>有一个例外是二分类的输出，我们希望预测值介于0和1之间而不是-1和1之间，这种情况可以用δ激活函数作为输出层。</p>
+<p>不同层的激活函数可以不同，比如可以在隐藏层使用tanh函数，而在输出层使用δ函数。</p>
+<p>tanh和δ函数有一个缺点，就是当z非常大或者非常小时，那么导数的梯度即激活函数的斜率会非常小，这会拖慢梯度下降算法。</p>
+<p>所以在机器学习中很受欢迎的一个玩具是 <strong>修正线性单元(ReLU)</strong> ，</p>
+<p>ReLU函数长这样，公式为a&#x3D;max(0,z)</p>
+<p><img src="/img/Pastedimage20230823150636.png" alt="图片"></p>
+<p>只要z为正，导数就为1；当z为负时，导数就为0.虽然这个函数在z&#x3D;0时没有导数定义，但在实现时你会发现z刚好等于0的概率很低很低，所以不需要担心这一点。</p>
+<p>或者你也可以给0点赋导数值。</p>
+<p>在选择激活函数时有一些经验法则，如果你的输出值是0和1(比如二分类)，那么δ函数很适合做输出层的激活函数，然后其他所有单元都用ReLU，即修正线性单元，现在已经变成了激活函数的默认选择了。</p>
+<p>如果你不确定隐藏层应该用哪个激活函数，就用ReLU作为激活函数，虽然人们有时候也会用tanh激活函数。</p>
+<p>ReLU的一个缺点是，当z为负时，导数等于0，在实践中没什么问题。</p>
+<p>ReLU还有另一个版本，叫做带泄漏的ReLU。当z为负时，函数不为0，它会有一个很平缓的斜率</p>
+<p><img src="/img/Pastedimage20230823151920.png" alt="图片"></p>
+<p>这通常比ReLU效果要好，但在实际中不常使用。</p>
+<p>为什么通常选ReLU呢？因为其函数斜率保持为1，这会让你的神经网络学习速度快很多。虽然当z为负时斜率为0，但在实践中有足够多的隐藏单元令z大于0。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p><img src="/img/Pastedimage20230823152430.png" alt="图片"></p>
+<p>除非是二分类的输出层，不然绝对不要用。</p>
+<p><img src="/img/Pastedimage20230823152519.png" alt="图片"></p>
+<p>大多数时候效果比sigmoid好。</p>
+<p><img src="/img/Pastedimage20230823152554.png" alt="图片"></p>
+<p>最常用的激活函数，如果实在不知道用什么激活函数，就用这个。</p>
+<p><img src="/img/Pastedimage20230823152723.png" alt="图片"></p>
+<p>可以尝试一下效果。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="reward-container">
+  <div>请我一杯咖啡吧！</div>
+  <button>
+    赞赏
+  </button>
+  <div class="post-reward">
+      <div>
+        <img src="/images/weixin.jpg" alt="GMRCCC 微信">
+        <span>微信</span>
+      </div>
+      <div>
+        <img src="/images/zhifubao.jpg" alt="GMRCCC 支付宝">
+        <span>支付宝</span>
+      </div>
+
+  </div>
+</div>
+
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>GMRCCC
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="http://gmrccc.com/2023/10/26/%E8%AF%BE%E7%A8%8B1-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E4%B8%8E%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/3.6%20%E6%BF%80%E6%B4%BB%E5%87%BD%E6%95%B0/" title="3.6 激活函数">http://gmrccc.com/2023/10/26/课程1-神经网络与深度学习/3.6 激活函数/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" rel="tag"># 深度学习</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/10/26/%E8%AF%BE%E7%A8%8B1-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E4%B8%8E%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/3.7%20%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E9%9D%9E%E7%BA%BF%E6%80%A7%E6%BF%80%E6%B4%BB%E5%87%BD%E6%95%B0/" rel="prev" title="3.7 为什么需要非线性激活函数">
+                  <i class="fa fa-angle-left"></i> 3.7 为什么需要非线性激活函数
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/10/26/%E8%AF%BE%E7%A8%8B1-%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E4%B8%8E%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/3.5%20%E5%90%91%E9%87%8F%E5%8C%96%E5%AE%9E%E7%8E%B0%E7%9A%84%E8%A7%A3%E9%87%8A/" rel="next" title="3.5 向量化实现的解释">
+                  3.5 向量化实现的解释 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2023</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">GMRCCC</span>
+  </div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

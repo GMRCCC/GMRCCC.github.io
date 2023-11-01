@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha256-CTSx/A06dm1B063156EVh15m6Y67pAjZZaQc89LLSrU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"gmrccc.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.18.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="softmax和hardmax对应，hardmax指的是取向量中的最大值为1，其他为0(这种处理方式很”硬”)，而softmax相对柔和一点，算每种类别的概率值  softmax相比于逻辑回归将分类个数从2个推广到了C(C≥2)个，当C&#x3D;2时，softmax又退化到了逻辑回归  大体的证明思路就是，如果分类个数为2，则最后算出的a[l]是一个二维向量，由于概率和为1，实际上我们只需要算其">
+<meta property="og:type" content="article">
+<meta property="og:title" content="3.9 训练一个Softmax分类器">
+<meta property="og:url" content="http://gmrccc.com/2023/10/26/%E8%AF%BE%E7%A8%8B2-%E6%94%B9%E5%96%84%E6%B7%B1%E5%B1%82%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/3.9%20%E8%AE%AD%E7%BB%83%E4%B8%80%E4%B8%AASoftmax%E5%88%86%E7%B1%BB%E5%99%A8/index.html">
+<meta property="og:site_name" content="GMR&#39;s Blog">
+<meta property="og:description" content="softmax和hardmax对应，hardmax指的是取向量中的最大值为1，其他为0(这种处理方式很”硬”)，而softmax相对柔和一点，算每种类别的概率值  softmax相比于逻辑回归将分类个数从2个推广到了C(C≥2)个，当C&#x3D;2时，softmax又退化到了逻辑回归  大体的证明思路就是，如果分类个数为2，则最后算出的a[l]是一个二维向量，由于概率和为1，实际上我们只需要算其">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://gmrccc.com/img/Pastedimage20230919151317.png">
+<meta property="og:image" content="http://gmrccc.com/img/Pastedimage20230919151507.png">
+<meta property="og:image" content="http://gmrccc.com/img/Pastedimage20230919152614.png">
+<meta property="og:image" content="http://gmrccc.com/img/Pastedimage20230919153908.png">
+<meta property="article:published_time" content="2023-10-25T16:00:00.000Z">
+<meta property="article:modified_time" content="2023-10-26T09:00:46.024Z">
+<meta property="article:author" content="GMRCCC">
+<meta property="article:tag" content="深度学习">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://gmrccc.com/img/Pastedimage20230919151317.png">
+
+
+<link rel="canonical" href="http://gmrccc.com/2023/10/26/%E8%AF%BE%E7%A8%8B2-%E6%94%B9%E5%96%84%E6%B7%B1%E5%B1%82%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/3.9%20%E8%AE%AD%E7%BB%83%E4%B8%80%E4%B8%AASoftmax%E5%88%86%E7%B1%BB%E5%99%A8/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://gmrccc.com/2023/10/26/%E8%AF%BE%E7%A8%8B2-%E6%94%B9%E5%96%84%E6%B7%B1%E5%B1%82%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/3.9%20%E8%AE%AD%E7%BB%83%E4%B8%80%E4%B8%AASoftmax%E5%88%86%E7%B1%BB%E5%99%A8/","path":"2023/10/26/课程2-改善深层神经网络/3.9 训练一个Softmax分类器/","title":"3.9 训练一个Softmax分类器"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>3.9 训练一个Softmax分类器 | GMR's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">GMR's Blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-overview-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="GMRCCC"
+      src="/uploads/1.jpg">
+  <p class="site-author-name" itemprop="name">GMRCCC</p>
+  <div class="site-description" itemprop="description">GM兔的博客</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">158</span>
+          <span class="site-state-item-name">文章</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/GMRCCC" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;GMRCCC" rel="noopener me" target="_blank">GitHub</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://gmrccc.com/2023/10/26/%E8%AF%BE%E7%A8%8B2-%E6%94%B9%E5%96%84%E6%B7%B1%E5%B1%82%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/3.9%20%E8%AE%AD%E7%BB%83%E4%B8%80%E4%B8%AASoftmax%E5%88%86%E7%B1%BB%E5%99%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/1.jpg">
+      <meta itemprop="name" content="GMRCCC">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GMR's Blog">
+      <meta itemprop="description" content="GM兔的博客">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="3.9 训练一个Softmax分类器 | GMR's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          3.9 训练一个Softmax分类器
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-10-26 00:00:00 / 修改时间：17:00:46" itemprop="dateCreated datePublished" datetime="2023-10-26T00:00:00+08:00">2023-10-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%90%B4%E6%81%A9%E8%BE%BE%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A02-%E6%94%B9%E5%96%84%E6%B7%B1%E5%B1%82%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" itemprop="url" rel="index"><span itemprop="name">吴恩达深度学习2-改善深层神经网络</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>softmax和hardmax对应，hardmax指的是取向量中的最大值为1，其他为0(这种处理方式很”硬”)，而softmax相对柔和一点，算每种类别的概率值</p>
+<p><img src="/img/Pastedimage20230919151317.png" alt="图片"></p>
+<p>softmax相比于逻辑回归将分类个数从2个推广到了C(C≥2)个，当C&#x3D;2时，softmax又退化到了逻辑回归</p>
+<p><img src="/img/Pastedimage20230919151507.png" alt="图片"></p>
+<p>大体的证明思路就是，如果分类个数为2，则最后算出的a[l]是一个二维向量，由于概率和为1，实际上我们只需要算其中的一个数即可，这就又回到了逻辑回归的计算方式。</p>
+<p>在定义softmax分类器的损失函数时，我们使用交叉熵来定义单个样本的损失，则成本函数J即为所有样本损失的平均</p>
+<p><img src="/img/Pastedimage20230919152614.png" alt="图片"></p>
+<p>假设样本为[0 1 0 0]^T,可以看到只有分类器得出第二类的值越大，预测结果才会越准，损失函数才会越低，这表明交叉熵是满足让成本降低的目标的。</p>
+<p>对softmax的梯度下降过程，正向传播的计算和前面学的一样，而对于反向传播，你可以自己去求导数，但如果你用了深度学习框架，当你指定正向传播的计算过程时，它会自动帮你计算反向传播</p>
+<p><img src="/img/Pastedimage20230919153908.png" alt="图片"></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="reward-container">
+  <div>请我一杯咖啡吧！</div>
+  <button>
+    赞赏
+  </button>
+  <div class="post-reward">
+      <div>
+        <img src="/images/weixin.jpg" alt="GMRCCC 微信">
+        <span>微信</span>
+      </div>
+      <div>
+        <img src="/images/zhifubao.jpg" alt="GMRCCC 支付宝">
+        <span>支付宝</span>
+      </div>
+
+  </div>
+</div>
+
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>GMRCCC
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="http://gmrccc.com/2023/10/26/%E8%AF%BE%E7%A8%8B2-%E6%94%B9%E5%96%84%E6%B7%B1%E5%B1%82%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/3.9%20%E8%AE%AD%E7%BB%83%E4%B8%80%E4%B8%AASoftmax%E5%88%86%E7%B1%BB%E5%99%A8/" title="3.9 训练一个Softmax分类器">http://gmrccc.com/2023/10/26/课程2-改善深层神经网络/3.9 训练一个Softmax分类器/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" rel="tag"># 深度学习</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/10/26/%E8%AF%BE%E7%A8%8B2-%E6%94%B9%E5%96%84%E6%B7%B1%E5%B1%82%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/3.8%20Softmax%E5%9B%9E%E5%BD%92/" rel="next" title="3.8 Softmax回归">
+                  3.8 Softmax回归 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2023</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">GMRCCC</span>
+  </div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

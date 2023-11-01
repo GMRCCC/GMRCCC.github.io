@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha256-CTSx/A06dm1B063156EVh15m6Y67pAjZZaQc89LLSrU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"gmrccc.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.18.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="端到端的深度学习就是把需要多阶段处理的系统用单个神经网络处理。 以语音识别为例，传统的语音识别需要经过特征提取、音位提取、音位组合成词、词组成文本等过程，而端到端的深度学习只需要一个神经网络就能直接对语音进行识别  这对常年工作在传统方法的某一阶段的科学工作者来说是一件难以接受的事情。 端到端深度学习的一个挑战是必须要喂大量的数据才能有良好的效果，在数据量小的时候，传统方法往往有更好的效果，但数据">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2.9 什么是端到端的深度学习">
+<meta property="og:url" content="http://gmrccc.com/2023/10/27/%E8%AF%BE%E7%A8%8B3-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%EF%BC%88ML%EF%BC%89%E7%AD%96%E7%95%A5/2.9%20%E4%BB%80%E4%B9%88%E6%98%AF%E7%AB%AF%E5%88%B0%E7%AB%AF%E7%9A%84%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/index.html">
+<meta property="og:site_name" content="GMR&#39;s Blog">
+<meta property="og:description" content="端到端的深度学习就是把需要多阶段处理的系统用单个神经网络处理。 以语音识别为例，传统的语音识别需要经过特征提取、音位提取、音位组合成词、词组成文本等过程，而端到端的深度学习只需要一个神经网络就能直接对语音进行识别  这对常年工作在传统方法的某一阶段的科学工作者来说是一件难以接受的事情。 端到端深度学习的一个挑战是必须要喂大量的数据才能有良好的效果，在数据量小的时候，传统方法往往有更好的效果，但数据">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://gmrccc.com/img/Pastedimage20231008104240.png">
+<meta property="og:image" content="http://gmrccc.com/img/Pastedimage20231008104742.png">
+<meta property="og:image" content="http://gmrccc.com/img/Pastedimage20231008105450.png">
+<meta property="og:image" content="http://gmrccc.com/img/Pastedimage20231008110406.png">
+<meta property="og:image" content="http://gmrccc.com/img/Pastedimage20231008111401.png">
+<meta property="article:published_time" content="2023-10-26T16:00:00.000Z">
+<meta property="article:modified_time" content="2023-10-27T02:48:22.280Z">
+<meta property="article:author" content="GMRCCC">
+<meta property="article:tag" content="深度学习">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://gmrccc.com/img/Pastedimage20231008104240.png">
+
+
+<link rel="canonical" href="http://gmrccc.com/2023/10/27/%E8%AF%BE%E7%A8%8B3-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%EF%BC%88ML%EF%BC%89%E7%AD%96%E7%95%A5/2.9%20%E4%BB%80%E4%B9%88%E6%98%AF%E7%AB%AF%E5%88%B0%E7%AB%AF%E7%9A%84%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://gmrccc.com/2023/10/27/%E8%AF%BE%E7%A8%8B3-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%EF%BC%88ML%EF%BC%89%E7%AD%96%E7%95%A5/2.9%20%E4%BB%80%E4%B9%88%E6%98%AF%E7%AB%AF%E5%88%B0%E7%AB%AF%E7%9A%84%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/","path":"2023/10/27/课程3-机器学习（ML）策略/2.9 什么是端到端的深度学习/","title":"2.9 什么是端到端的深度学习"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>2.9 什么是端到端的深度学习 | GMR's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">GMR's Blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-overview-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="GMRCCC"
+      src="/uploads/1.jpg">
+  <p class="site-author-name" itemprop="name">GMRCCC</p>
+  <div class="site-description" itemprop="description">GM兔的博客</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">158</span>
+          <span class="site-state-item-name">文章</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/GMRCCC" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;GMRCCC" rel="noopener me" target="_blank">GitHub</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://gmrccc.com/2023/10/27/%E8%AF%BE%E7%A8%8B3-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%EF%BC%88ML%EF%BC%89%E7%AD%96%E7%95%A5/2.9%20%E4%BB%80%E4%B9%88%E6%98%AF%E7%AB%AF%E5%88%B0%E7%AB%AF%E7%9A%84%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/1.jpg">
+      <meta itemprop="name" content="GMRCCC">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GMR's Blog">
+      <meta itemprop="description" content="GM兔的博客">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="2.9 什么是端到端的深度学习 | GMR's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          2.9 什么是端到端的深度学习
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-10-27 00:00:00 / 修改时间：10:48:22" itemprop="dateCreated datePublished" datetime="2023-10-27T00:00:00+08:00">2023-10-27</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%90%B4%E6%81%A9%E8%BE%BE%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A03-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%EF%BC%88ML%EF%BC%89%E7%AD%96%E7%95%A5/" itemprop="url" rel="index"><span itemprop="name">吴恩达深度学习3-机器学习（ML）策略</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>端到端的深度学习就是把需要多阶段处理的系统用单个神经网络处理。</p>
+<p>以语音识别为例，传统的语音识别需要经过特征提取、音位提取、音位组合成词、词组成文本等过程，而端到端的深度学习只需要一个神经网络就能直接对语音进行识别</p>
+<p><img src="/img/Pastedimage20231008104240.png" alt="图片"></p>
+<p>这对常年工作在传统方法的某一阶段的科学工作者来说是一件难以接受的事情。</p>
+<p>端到端深度学习的一个挑战是必须要喂大量的数据才能有良好的效果，在数据量小的时候，传统方法往往有更好的效果，但数据量一大，端到端深度学习的表现就会超过传统方法了。</p>
+<p>当数据量适中时，你也可以采用折中的方法，比如直接用深度学习进行音位的提取，后面的步骤还是遵循传统方法</p>
+<p><img src="/img/Pastedimage20231008104742.png" alt="图片"></p>
+<p>另一个例子是面部识别，比起端到端的直接识别，业界更常用的方法是分成两步，第一步先在图像中找到人脸，第二步将人脸放大居中进行识别，识别的方法是将人脸与数据库中的人脸进行比较，看是否为同一个人</p>
+<p><img src="/img/Pastedimage20231008105450.png" alt="图片"></p>
+<p>为什么这里不用端到端的学习而是分成两步呢，有两个原因。一个是要解决的两个问题，每个问题实际上要简单得多，第二个是两个子任务的训练数据都很多(业界领先的公司可能会有上亿张人脸图片)。</p>
+<p>相对来说，一步到位的学习就没有那么多数据了(从门禁拍摄的照片对应到具体的人的数据)，所以比起纯粹的端到端，分成两步能够更好的进行学习。</p>
+<p>端到端表现比较好的一个例子是机器翻译，传统的机器翻译方法需要经过许多步骤(比如先单个词单个词翻译，再将它们串起来)，但由于我们有大量的数据(从一种语言翻译到另一种语音的数据数不胜数)来进行学习，因此端到端深度学习的效果会比传统方法更好</p>
+<p><img src="/img/Pastedimage20231008110406.png" alt="图片"></p>
+<p>最后一个例子是通过X射线图去判断一个孩子的年龄(医生们通常用来判断孩子的发育正不正常)，传统做法是先把图片中的一节一节骨骼分割，然后和平均骨长比较长度，这种做法的效果非常好。而端到端的学习，由于数据量的缺乏，目前为止还取不到更好的效果</p>
+<p><img src="/img/Pastedimage20231008111401.png" alt="图片"></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="reward-container">
+  <div>请我一杯咖啡吧！</div>
+  <button>
+    赞赏
+  </button>
+  <div class="post-reward">
+      <div>
+        <img src="/images/weixin.jpg" alt="GMRCCC 微信">
+        <span>微信</span>
+      </div>
+      <div>
+        <img src="/images/zhifubao.jpg" alt="GMRCCC 支付宝">
+        <span>支付宝</span>
+      </div>
+
+  </div>
+</div>
+
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>GMRCCC
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="http://gmrccc.com/2023/10/27/%E8%AF%BE%E7%A8%8B3-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%EF%BC%88ML%EF%BC%89%E7%AD%96%E7%95%A5/2.9%20%E4%BB%80%E4%B9%88%E6%98%AF%E7%AB%AF%E5%88%B0%E7%AB%AF%E7%9A%84%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" title="2.9 什么是端到端的深度学习">http://gmrccc.com/2023/10/27/课程3-机器学习（ML）策略/2.9 什么是端到端的深度学习/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" rel="tag"># 深度学习</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/10/27/%E8%AF%BE%E7%A8%8B4-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/1.1%20%E8%AE%A1%E7%AE%97%E6%9C%BA%E8%A7%86%E8%A7%89/" rel="prev" title="1.1 计算机视觉">
+                  <i class="fa fa-angle-left"></i> 1.1 计算机视觉
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/10/27/%E8%AF%BE%E7%A8%8B3-%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%EF%BC%88ML%EF%BC%89%E7%AD%96%E7%95%A5/2.8%20%E5%A4%9A%E4%BB%BB%E5%8A%A1%E5%AD%A6%E4%B9%A0/" rel="next" title="2.8 多任务学习">
+                  2.8 多任务学习 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2023</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">GMRCCC</span>
+  </div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

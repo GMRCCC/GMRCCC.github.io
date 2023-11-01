@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha256-CTSx/A06dm1B063156EVh15m6Y67pAjZZaQc89LLSrU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"gmrccc.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.18.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="使用的模型是torchvision中的VGG分类模型，VGG有很多个版本，最常用的是VGG16或VGG19，我们这次用VGG16(注意，这里的网页是老版，版本为0.9.0，可以在左上角设置)。   pretrained为true，则下载网络模型的参数在数据集中已经训练好了，false就是初始参数。 progress为true会显示下载进度条，false不显示。  我们先下载ImageNet数据集。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="19 现有网络模型的使用和修改">
+<meta property="og:url" content="http://gmrccc.com/2023/10/30/PyTorch%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8%E6%95%99%E7%A8%8B/19%20%E7%8E%B0%E6%9C%89%E7%BD%91%E7%BB%9C%E6%A8%A1%E5%9E%8B%E7%9A%84%E4%BD%BF%E7%94%A8%E5%92%8C%E4%BF%AE%E6%94%B9/index.html">
+<meta property="og:site_name" content="GMR&#39;s Blog">
+<meta property="og:description" content="使用的模型是torchvision中的VGG分类模型，VGG有很多个版本，最常用的是VGG16或VGG19，我们这次用VGG16(注意，这里的网页是老版，版本为0.9.0，可以在左上角设置)。   pretrained为true，则下载网络模型的参数在数据集中已经训练好了，false就是初始参数。 progress为true会显示下载进度条，false不显示。  我们先下载ImageNet数据集。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://gmrccc.com/img/Pastedimage20230728155829.png">
+<meta property="og:image" content="http://gmrccc.com/img/Pastedimage20230728161226.png">
+<meta property="og:image" content="http://gmrccc.com/img/Pastedimage20230728163045.png">
+<meta property="og:image" content="http://gmrccc.com/img/Pastedimage20230728163112.png">
+<meta property="article:published_time" content="2023-10-29T16:00:00.000Z">
+<meta property="article:modified_time" content="2023-10-31T07:30:12.080Z">
+<meta property="article:author" content="GMRCCC">
+<meta property="article:tag" content="深度学习">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://gmrccc.com/img/Pastedimage20230728155829.png">
+
+
+<link rel="canonical" href="http://gmrccc.com/2023/10/30/PyTorch%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8%E6%95%99%E7%A8%8B/19%20%E7%8E%B0%E6%9C%89%E7%BD%91%E7%BB%9C%E6%A8%A1%E5%9E%8B%E7%9A%84%E4%BD%BF%E7%94%A8%E5%92%8C%E4%BF%AE%E6%94%B9/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://gmrccc.com/2023/10/30/PyTorch%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8%E6%95%99%E7%A8%8B/19%20%E7%8E%B0%E6%9C%89%E7%BD%91%E7%BB%9C%E6%A8%A1%E5%9E%8B%E7%9A%84%E4%BD%BF%E7%94%A8%E5%92%8C%E4%BF%AE%E6%94%B9/","path":"2023/10/30/PyTorch快速入门教程/19 现有网络模型的使用和修改/","title":"19 现有网络模型的使用和修改"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>19 现有网络模型的使用和修改 | GMR's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">GMR's Blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B7%BB%E5%8A%A0"><span class="nav-number">1.</span> <span class="nav-text">添加</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BF%AE%E6%94%B9"><span class="nav-number">2.</span> <span class="nav-text">修改</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="GMRCCC"
+      src="/uploads/1.jpg">
+  <p class="site-author-name" itemprop="name">GMRCCC</p>
+  <div class="site-description" itemprop="description">GM兔的博客</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">158</span>
+          <span class="site-state-item-name">文章</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/GMRCCC" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;GMRCCC" rel="noopener me" target="_blank">GitHub</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://gmrccc.com/2023/10/30/PyTorch%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8%E6%95%99%E7%A8%8B/19%20%E7%8E%B0%E6%9C%89%E7%BD%91%E7%BB%9C%E6%A8%A1%E5%9E%8B%E7%9A%84%E4%BD%BF%E7%94%A8%E5%92%8C%E4%BF%AE%E6%94%B9/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/1.jpg">
+      <meta itemprop="name" content="GMRCCC">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GMR's Blog">
+      <meta itemprop="description" content="GM兔的博客">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="19 现有网络模型的使用和修改 | GMR's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          19 现有网络模型的使用和修改
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-10-30 00:00:00" itemprop="dateCreated datePublished" datetime="2023-10-30T00:00:00+08:00">2023-10-30</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-10-31 15:30:12" itemprop="dateModified" datetime="2023-10-31T15:30:12+08:00">2023-10-31</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/PyTorch%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/" itemprop="url" rel="index"><span itemprop="name">PyTorch快速入门</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>使用的模型是torchvision中的VGG分类模型，VGG有很多个版本，最常用的是VGG16或VGG19，我们这次用VGG16(注意，这里的网页是老版，版本为0.9.0，可以在左上角设置)。</p>
+<p><img src="/img/Pastedimage20230728155829.png" alt="图片"></p>
+<ol>
+<li>pretrained为true，则下载网络模型的参数在数据集中已经训练好了，false就是初始参数。</li>
+<li>progress为true会显示下载进度条，false不显示。</li>
+</ol>
+<p>我们先下载ImageNet数据集。</p>
+<p>下载前必须先安装scipy，有就不用安装，打开termial终端，注意环境</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install scipy</span><br></pre></td></tr></table></figure>
+
+<p><img src="/img/Pastedimage20230728161226.png" alt="图片"></p>
+<p>根据官网给的参数来下载数据集</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">train_data = torchvision.datasets.ImageNet(<span class="string">&quot;data_image_net&quot;</span>, split=<span class="string">&#x27;train&#x27;</span>, download=<span class="literal">True</span>, transform=torchvision.transforms.ToTensor())</span><br></pre></td></tr></table></figure>
+
+<p>发现报错，去网上搜发现这个数据集有100多个G，如果只是下下来训练一个已知模型的话太过浪费，因此我们不进行下载。</p>
+<p>我们下载VGG16预训练和未预训练的两个模型，比较它们之间的差别。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torchvision  </span><br><span class="line"><span class="keyword">from</span> torch <span class="keyword">import</span> nn  </span><br><span class="line">  </span><br><span class="line">vgg16_false = torchvision.models.vgg16(pretrained=<span class="literal">False</span>)  </span><br><span class="line">vgg16_true = torchvision.models.vgg16(pretrained=<span class="literal">True</span>)</span><br></pre></td></tr></table></figure>
+
+<p><img src="/img/Pastedimage20230728163045.png" alt="图片"><br><img src="/img/Pastedimage20230728163112.png" alt="图片"></p>
+<p>查看VGG16其中一层，前一个是训练好的模型，后一个是未训练的模型，可以看到参数发生了改变。</p>
+<p>VGG16模型分类1000类，但我们要训练的数据集可能不是1000类的。一种简单的方式是把out_feature的1000改为10，或者在最后加一层线性层，将输出设为10.</p>
+<h4 id="添加"><a href="#添加" class="headerlink" title="添加"></a>添加</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">vgg16_true.add_module(<span class="string">&#x27;add_linear&#x27;</span>, nn.Linear(<span class="number">1000</span>, <span class="number">10</span>))  </span><br><span class="line"><span class="built_in">print</span>(vgg16_true)</span><br><span class="line"></span><br><span class="line">输出：</span><br><span class="line">VGG(</span><br><span class="line">  (features): Sequential(</span><br><span class="line">    (<span class="number">0</span>): Conv2d(<span class="number">3</span>, <span class="number">64</span>, kernel_size=(<span class="number">3</span>, <span class="number">3</span>), stride=(<span class="number">1</span>, <span class="number">1</span>), padding=(<span class="number">1</span>, <span class="number">1</span>))</span><br><span class="line">    (<span class="number">1</span>): ReLU(inplace=<span class="literal">True</span>)</span><br><span class="line">    ...</span><br><span class="line">  (classifier): Sequential(</span><br><span class="line">    (<span class="number">0</span>): Linear(in_features=<span class="number">25088</span>, out_features=<span class="number">4096</span>, bias=<span class="literal">True</span>)</span><br><span class="line">    (<span class="number">1</span>): ReLU(inplace=<span class="literal">True</span>)</span><br><span class="line">	...</span><br><span class="line">    (<span class="number">6</span>): Linear(in_features=<span class="number">4096</span>, out_features=<span class="number">1000</span>, bias=<span class="literal">True</span>)</span><br><span class="line">  )</span><br><span class="line">  (add_linear): Linear(in_features=<span class="number">1000</span>, out_features=<span class="number">10</span>, bias=<span class="literal">True</span>)</span><br><span class="line">)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>可以看到在最后加了一个线性层，我们也可以直接把线性层加到classifier里面</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">vgg16_true.classifier.add_module(<span class="string">&#x27;add_linear&#x27;</span>, nn.Linear(<span class="number">1000</span>, <span class="number">10</span>))  </span><br><span class="line"><span class="built_in">print</span>(vgg16_true)</span><br><span class="line"></span><br><span class="line">输出：</span><br><span class="line">VGG(</span><br><span class="line">  (features): Sequential(</span><br><span class="line">    (<span class="number">0</span>): Conv2d(<span class="number">3</span>, <span class="number">64</span>, kernel_size=(<span class="number">3</span>, <span class="number">3</span>), stride=(<span class="number">1</span>, <span class="number">1</span>), padding=(<span class="number">1</span>, <span class="number">1</span>))</span><br><span class="line">    (<span class="number">1</span>): ReLU(inplace=<span class="literal">True</span>)</span><br><span class="line">    ...</span><br><span class="line">  (classifier): Sequential(</span><br><span class="line">    (<span class="number">0</span>): Linear(in_features=<span class="number">25088</span>, out_features=<span class="number">4096</span>, bias=<span class="literal">True</span>)</span><br><span class="line">    (<span class="number">1</span>): ReLU(inplace=<span class="literal">True</span>)</span><br><span class="line">	...</span><br><span class="line">    (<span class="number">6</span>): Linear(in_features=<span class="number">4096</span>, out_features=<span class="number">1000</span>, bias=<span class="literal">True</span>)</span><br><span class="line">    (add_linear): Linear(in_features=<span class="number">1000</span>, out_features=<span class="number">10</span>, bias=<span class="literal">True</span>)</span><br><span class="line">  )</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h4 id="修改"><a href="#修改" class="headerlink" title="修改"></a>修改</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">vgg16_false.classifier[<span class="number">6</span>] = nn.Linear(<span class="number">4096</span>, <span class="number">10</span>)  </span><br><span class="line"><span class="built_in">print</span>(vgg16_false)</span><br><span class="line"></span><br><span class="line">输出：</span><br><span class="line">VGG(</span><br><span class="line">  (features): Sequential(</span><br><span class="line">    (<span class="number">0</span>): Conv2d(<span class="number">3</span>, <span class="number">64</span>, kernel_size=(<span class="number">3</span>, <span class="number">3</span>), stride=(<span class="number">1</span>, <span class="number">1</span>), padding=(<span class="number">1</span>, <span class="number">1</span>))</span><br><span class="line">    ...</span><br><span class="line">    (<span class="number">30</span>): MaxPool2d(kernel_size=<span class="number">2</span>, stride=<span class="number">2</span>, padding=<span class="number">0</span>, dilation=<span class="number">1</span>, ceil_mode=<span class="literal">False</span>)</span><br><span class="line">  )</span><br><span class="line">  (avgpool): AdaptiveAvgPool2d(output_size=(<span class="number">7</span>, <span class="number">7</span>))</span><br><span class="line">  (classifier): Sequential(</span><br><span class="line">    (<span class="number">0</span>): Linear(in_features=<span class="number">25088</span>, out_features=<span class="number">4096</span>, bias=<span class="literal">True</span>)</span><br><span class="line">    ...</span><br><span class="line">    (<span class="number">6</span>): Linear(in_features=<span class="number">4096</span>, out_features=<span class="number">10</span>, bias=<span class="literal">True</span>)</span><br><span class="line">  )</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="reward-container">
+  <div>请我一杯咖啡吧！</div>
+  <button>
+    赞赏
+  </button>
+  <div class="post-reward">
+      <div>
+        <img src="/images/weixin.jpg" alt="GMRCCC 微信">
+        <span>微信</span>
+      </div>
+      <div>
+        <img src="/images/zhifubao.jpg" alt="GMRCCC 支付宝">
+        <span>支付宝</span>
+      </div>
+
+  </div>
+</div>
+
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>GMRCCC
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="http://gmrccc.com/2023/10/30/PyTorch%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8%E6%95%99%E7%A8%8B/19%20%E7%8E%B0%E6%9C%89%E7%BD%91%E7%BB%9C%E6%A8%A1%E5%9E%8B%E7%9A%84%E4%BD%BF%E7%94%A8%E5%92%8C%E4%BF%AE%E6%94%B9/" title="19 现有网络模型的使用和修改">http://gmrccc.com/2023/10/30/PyTorch快速入门教程/19 现有网络模型的使用和修改/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" rel="tag"># 深度学习</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/10/30/PyTorch%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8%E6%95%99%E7%A8%8B/21%20%E5%AE%8C%E6%95%B4%E7%9A%84%E6%A8%A1%E5%9E%8B%E8%AE%AD%E7%BB%83%E5%A5%97%E8%B7%AF/" rel="prev" title="21 完整的模型训练套路">
+                  <i class="fa fa-angle-left"></i> 21 完整的模型训练套路
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/10/30/PyTorch%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8%E6%95%99%E7%A8%8B/18%20%E4%BC%98%E5%8C%96%E5%99%A8/" rel="next" title="18 优化器">
+                  18 优化器 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2023</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">GMRCCC</span>
+  </div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>

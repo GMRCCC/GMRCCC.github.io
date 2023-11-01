@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha256-CTSx/A06dm1B063156EVh15m6Y67pAjZZaQc89LLSrU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"gmrccc.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.18.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="dataset只是去告诉程序我们的数据集在哪个位置，dataloader是一个加载器，可以把数据加载到神经网络中。可以类比成扑克牌，把手想象成一个神经网络。   dataloader每次从dataset当中取数据，取多少、怎么取用dataloader中的参数去控制。 打开Pytorch的官方文档中的dataloader部分。  可以看到，dataloader出现在torch.utils.data工">
+<meta property="og:type" content="article">
+<meta property="og:title" content="09 DataLoader的使用">
+<meta property="og:url" content="http://gmrccc.com/2023/10/30/PyTorch%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8%E6%95%99%E7%A8%8B/09%20DataLoader%E7%9A%84%E4%BD%BF%E7%94%A8/index.html">
+<meta property="og:site_name" content="GMR&#39;s Blog">
+<meta property="og:description" content="dataset只是去告诉程序我们的数据集在哪个位置，dataloader是一个加载器，可以把数据加载到神经网络中。可以类比成扑克牌，把手想象成一个神经网络。   dataloader每次从dataset当中取数据，取多少、怎么取用dataloader中的参数去控制。 打开Pytorch的官方文档中的dataloader部分。  可以看到，dataloader出现在torch.utils.data工">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://gmrccc.com/img/Pastedimage20230724214614.png">
+<meta property="og:image" content="http://gmrccc.com/img/Pastedimage20230724215614.png">
+<meta property="og:image" content="http://gmrccc.com/img/Pastedimage20230724223623.png">
+<meta property="og:image" content="http://gmrccc.com/img/Pastedimage20230724222522.png">
+<meta property="og:image" content="http://gmrccc.com/img/Pastedimage20230724225721.png">
+<meta property="article:published_time" content="2023-10-29T16:00:00.000Z">
+<meta property="article:modified_time" content="2023-11-01T02:15:52.621Z">
+<meta property="article:author" content="GMRCCC">
+<meta property="article:tag" content="深度学习">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://gmrccc.com/img/Pastedimage20230724214614.png">
+
+
+<link rel="canonical" href="http://gmrccc.com/2023/10/30/PyTorch%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8%E6%95%99%E7%A8%8B/09%20DataLoader%E7%9A%84%E4%BD%BF%E7%94%A8/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://gmrccc.com/2023/10/30/PyTorch%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8%E6%95%99%E7%A8%8B/09%20DataLoader%E7%9A%84%E4%BD%BF%E7%94%A8/","path":"2023/10/30/PyTorch快速入门教程/09 DataLoader的使用/","title":"09 DataLoader的使用"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>09 DataLoader的使用 | GMR's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">GMR's Blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-overview-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="GMRCCC"
+      src="/uploads/1.jpg">
+  <p class="site-author-name" itemprop="name">GMRCCC</p>
+  <div class="site-description" itemprop="description">GM兔的博客</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">158</span>
+          <span class="site-state-item-name">文章</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/GMRCCC" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;GMRCCC" rel="noopener me" target="_blank">GitHub</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://gmrccc.com/2023/10/30/PyTorch%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8%E6%95%99%E7%A8%8B/09%20DataLoader%E7%9A%84%E4%BD%BF%E7%94%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/1.jpg">
+      <meta itemprop="name" content="GMRCCC">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GMR's Blog">
+      <meta itemprop="description" content="GM兔的博客">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="09 DataLoader的使用 | GMR's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          09 DataLoader的使用
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-10-30 00:00:00" itemprop="dateCreated datePublished" datetime="2023-10-30T00:00:00+08:00">2023-10-30</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2023-11-01 10:15:52" itemprop="dateModified" datetime="2023-11-01T10:15:52+08:00">2023-11-01</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/PyTorch%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/" itemprop="url" rel="index"><span itemprop="name">PyTorch快速入门</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>dataset只是去告诉程序我们的数据集在哪个位置，dataloader是一个加载器，可以把数据加载到神经网络中。可以类比成扑克牌，把手想象成一个神经网络。</p>
+<p><img src="/img/Pastedimage20230724214614.png" alt="图片"></p>
+<p> dataloader每次从dataset当中取数据，取多少、怎么取用dataloader中的参数去控制。</p>
+<p>打开Pytorch的官方文档中的dataloader部分。</p>
+<p><img src="/img/Pastedimage20230724215614.png" alt="图片"></p>
+<p>可以看到，dataloader出现在torch.utils.data工具包下。</p>
+<p>dataloader中的参数比较多，但其中只有dataset没有默认值。</p>
+<ul>
+<li><p><strong>dataset</strong> (<a target="_blank" rel="noopener" href="https://pytorch.org/docs/stable/data.html?highlight=dataloader#torch.utils.data.Dataset" title="torch.utils.data.Dataset"><em>Dataset</em></a>) – dataset from which to load the data.</p>
+</li>
+<li><p><strong>batch_size</strong> (<a target="_blank" rel="noopener" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a><em>,</em> <em>optional</em>) – how many samples per batch to load (default: <code>1</code>).</p>
+</li>
+<li><p><strong>shuffle</strong> (<a target="_blank" rel="noopener" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a><em>,</em> <em>optional</em>) – set to <code>True</code> to have the data reshuffled at every epoch (default: <code>False</code>).</p>
+</li>
+<li><p><strong>sampler</strong> (<a target="_blank" rel="noopener" href="https://pytorch.org/docs/stable/data.html?highlight=dataloader#torch.utils.data.Sampler" title="torch.utils.data.Sampler"><em>Sampler</em></a> <em>or</em> <em>Iterable</em><em>,</em> <em>optional</em>) – defines the strategy to draw samples from the dataset. Can be any <code>Iterable</code> with <code>__len__</code> implemented. If specified, <code>shuffle</code> must not be specified.</p>
+</li>
+<li><p><strong>batch_sampler</strong> (<a target="_blank" rel="noopener" href="https://pytorch.org/docs/stable/data.html?highlight=dataloader#torch.utils.data.Sampler" title="torch.utils.data.Sampler"><em>Sampler</em></a> <em>or</em> <em>Iterable</em><em>,</em> <em>optional</em>) – like <code>sampler</code>, but returns a batch of indices at a time. Mutually exclusive with <code>batch_size</code>, <code>shuffle</code>, <code>sampler</code>, and <code>drop_last</code>.</p>
+</li>
+<li><p><strong>num_workers</strong> (<a target="_blank" rel="noopener" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a><em>,</em> <em>optional</em>) – how many subprocesses to use for data loading. <code>0</code> means that the data will be loaded in the main process. (default: <code>0</code>)</p>
+</li>
+<li><p><strong>drop_last</strong> (<a target="_blank" rel="noopener" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a><em>,</em> <em>optional</em>) – set to <code>True</code> to drop the last incomplete batch, if the dataset size is not divisible by the batch size. If <code>False</code> and the size of dataset is not divisible by the batch size, then the last batch will be smaller. (default: <code>False</code>)</p>
+</li>
+</ul>
+<p>batch_size表示每次取几个数据。</p>
+<p>shuffle表示是否打乱数据，若为true，则两次筛数据的顺序一样 。</p>
+<p>num_workers表示进程数，若为0则只用主进程进行加载，但<strong>num_workers＞0在windows下可能会产生错误</strong>。</p>
+<p>drop_last表示当取数据除不尽数据总数时数据是舍去还是不舍去。</p>
+<p>先进行数据的准备，把batch_size设为4，表示一次性抓取4个数据。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torchvision  </span><br><span class="line"><span class="keyword">from</span> torch.utils.data <span class="keyword">import</span> DataLoader  </span><br><span class="line">  </span><br><span class="line"><span class="comment"># 准备的测试集  </span></span><br><span class="line">test_data = torchvision.datasets.CIFAR10(<span class="string">&quot;./dataset&quot;</span>, train=<span class="literal">False</span>, transform=torchvision.transforms.ToTensor());  </span><br><span class="line">  </span><br><span class="line">test_loader = DataLoader(dataset=test_data, batch_size=<span class="number">4</span>, shuffle=<span class="literal">True</span>, num_workers=<span class="number">0</span>, drop_last=<span class="literal">False</span>)</span><br></pre></td></tr></table></figure>
+
+<p>查看CIFAR10数据集</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">__getitem__</span>(<span class="params">self, index: <span class="built_in">int</span></span>) -&gt; <span class="type">Tuple</span>[<span class="type">Any</span>, <span class="type">Any</span>]:  </span><br><span class="line">    <span class="string">&quot;&quot;&quot;  </span></span><br><span class="line"><span class="string">    Args:        index (int): Index  </span></span><br><span class="line"><span class="string">    Returns:        tuple: (image, target) where target is index of the target class.    &quot;&quot;&quot;</span>    </span><br><span class="line">    img, target = self.data[index], self.targets[index]  </span><br><span class="line">  </span><br><span class="line">    <span class="comment"># doing this so that it is consistent with all other datasets  </span></span><br><span class="line">    <span class="comment"># to return a PIL Image    img = Image.fromarray(img)  </span></span><br><span class="line">  </span><br><span class="line">    <span class="keyword">if</span> self.transform <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:  </span><br><span class="line">        img = self.transform(img)  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">if</span> self.target_transform <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:  </span><br><span class="line">        target = self.target_transform(target)  </span><br><span class="line">  </span><br><span class="line">    <span class="keyword">return</span> img, target</span><br></pre></td></tr></table></figure>
+
+<p>可以发现getitem返回数据的方式为img, target，则我们用同样的方式去接收。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 测试数据集中第一张图片及target  </span></span><br><span class="line">img, target = test_data[<span class="number">0</span>]  </span><br><span class="line"><span class="built_in">print</span>(img.shape)  </span><br><span class="line"><span class="built_in">print</span>(target)</span><br><span class="line"></span><br><span class="line">输出：</span><br><span class="line">torch.Size([<span class="number">3</span>, <span class="number">32</span>, <span class="number">32</span>])</span><br><span class="line"><span class="number">3</span></span><br></pre></td></tr></table></figure>
+
+<p>batch_size&#x3D;4，就是取test_data[0]，test_data[1]，test_data[2]，test_data[3]并将他们打包。注意，默认情况下batch_size是从数据集中随机抓取数据。</p>
+<p><img src="/img/Pastedimage20230724223623.png" alt="图片"></p>
+<p><img src="/img/Pastedimage20230724222522.png" alt="图片"></p>
+<p>可以看到，dataloader打包时是将img和target分别打包</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> data <span class="keyword">in</span> test_loader:  </span><br><span class="line">    imgs, targets = data  </span><br><span class="line">    <span class="built_in">print</span>(imgs.shape)  </span><br><span class="line">    <span class="built_in">print</span>(targets)</span><br><span class="line"></span><br><span class="line">输出：</span><br><span class="line">torch.Size([<span class="number">4</span>, <span class="number">3</span>, <span class="number">32</span>, <span class="number">32</span>])</span><br><span class="line">tensor([<span class="number">1</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">1</span>])</span><br><span class="line">torch.Size([<span class="number">4</span>, <span class="number">3</span>, <span class="number">32</span>, <span class="number">32</span>])</span><br><span class="line">tensor([<span class="number">9</span>, <span class="number">4</span>, <span class="number">8</span>, <span class="number">1</span>])</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>[4,3,32,32]表示有4张图片，3通道，图片大小32×32.<br>[1,6,7,1]表示这4张图片的类别。</p>
+<p>用tensorboard演示一下</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">writer = SummaryWriter(<span class="string">&quot;dataloader&quot;</span>)  </span><br><span class="line">step = <span class="number">0</span>  </span><br><span class="line"><span class="keyword">for</span> data <span class="keyword">in</span> test_loader:  </span><br><span class="line">    imgs, targets = data  </span><br><span class="line">    <span class="comment"># print(imgs.shape)  </span></span><br><span class="line">    <span class="comment"># print(targets)    </span></span><br><span class="line">    writer.add_images(<span class="string">&quot;test_data&quot;</span>, imgs, step)  </span><br><span class="line">    step = step + <span class="number">1</span>  </span><br><span class="line">  </span><br><span class="line">writer.close()</span><br></pre></td></tr></table></figure>
+
+<p>进入tensorboard查看，这里要是跳步的话，可以用如下命令</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tensorboard --samples_per_plugin images=<span class="number">500</span> --logdir=<span class="string">&quot;dataloader&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/img/Pastedimage20230724225721.png" alt="图片"></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="reward-container">
+  <div>请我一杯咖啡吧！</div>
+  <button>
+    赞赏
+  </button>
+  <div class="post-reward">
+      <div>
+        <img src="/images/weixin.jpg" alt="GMRCCC 微信">
+        <span>微信</span>
+      </div>
+      <div>
+        <img src="/images/zhifubao.jpg" alt="GMRCCC 支付宝">
+        <span>支付宝</span>
+      </div>
+
+  </div>
+</div>
+
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>GMRCCC
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="http://gmrccc.com/2023/10/30/PyTorch%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8%E6%95%99%E7%A8%8B/09%20DataLoader%E7%9A%84%E4%BD%BF%E7%94%A8/" title="09 DataLoader的使用">http://gmrccc.com/2023/10/30/PyTorch快速入门教程/09 DataLoader的使用/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" rel="tag"># 深度学习</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/10/30/PyTorch%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8%E6%95%99%E7%A8%8B/10%20%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E7%9A%84%E5%9F%BA%E6%9C%AC%E9%AA%A8%E6%9E%B6-nn.Module%E7%9A%84%E4%BD%BF%E7%94%A8%E3%80%82/" rel="prev" title="10 神经网络的基本骨架-nn.Module的使用">
+                  <i class="fa fa-angle-left"></i> 10 神经网络的基本骨架-nn.Module的使用
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/10/30/PyTorch%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8%E6%95%99%E7%A8%8B/08%20torchvision%E4%B8%AD%E7%9A%84%E6%95%B0%E6%8D%AE%E9%9B%86%E4%BD%BF%E7%94%A8/" rel="next" title="08 torchvision中的数据集使用">
+                  08 torchvision中的数据集使用 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2023</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">GMRCCC</span>
+  </div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>
